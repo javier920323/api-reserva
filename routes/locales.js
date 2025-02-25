@@ -5,7 +5,7 @@ const Local = require("../models/Local"); // Importar el modelo Local
 
 // Endpoint para obtener la lista de locales
 router.get("/", async (req, res) => {
-  const locales = await Local.find().select("nombre cupo -_id"); // Obtener todos los locales de la BD
+  const locales = await Local.find().select("_id nombre cupo "); // Obtener todos los locales de la BD
   res.json(locales); // Enviar la lista en formato JSON
 });
 
@@ -16,6 +16,40 @@ router.post("/", async (req, res) => {
   await nuevoLocal.save(); // Guardar en la base de datos
   res.status(201).json(nuevoLocal); // Responder con el local creado
 });
+
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nombre, cupo } = req.body;
+
+    // Validar que los datos sean correctos
+    if (!nombre || !cupo || typeof cupo !== "number" || cupo <= 0) {
+      return res.status(400).json({ error: "Datos inválidos" });
+    }
+
+    // Verificar si el local existe
+    const local = await Local.findById(id);
+    if (!local) {
+      return res.status(404).json({ error: "Local no encontrado" });
+    }
+
+    // Verificar si otro local ya tiene el mismo nombre
+    const existeLocal = await Local.findOne({ nombre: nombre.trim(), _id: { $ne: id } });
+    if (existeLocal) {
+      return res.status(400).json({ error: "Ya existe otro local con este nombre" });
+    }
+
+    // Actualizar el local
+    local.nombre = nombre.trim();
+    local.cupo = cupo;
+    await local.save();
+
+    res.json(local);
+  } catch (error) {
+    res.status(500).json({ error: "Error al actualizar el local" });
+  }
+});
+
 
 // Exportar el enrutador
 module.exports = router;

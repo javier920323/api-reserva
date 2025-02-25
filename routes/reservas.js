@@ -4,30 +4,130 @@ const router = express.Router(); // Crear el enrutador de Express
 const Reserva = require("../models/Reserva"); // Importar el modelo Reserva
 const Local = require("../models/Local"); // Importar el modelo Local
 
+// Endpoint para obtener todas reservas de un local
+router.get("/:local_id", async (req, res) => {
+  try {
+    const { local_id } = req.params;
+    // Verificar si el local existe
+    const local = await Local.findById(local_id);
+    if (!local) {
+      return res.status(404).json({ error: "Local no encontrado" });
+    }
+    // Obtener todas las reservas del local, ordenadas por fecha
+    const reservas = await Reserva.find({ local_id }).sort({ fecha: 1 });
+    res.json({
+      local: local.nombre,
+      cupo_total: local.cupo,
+      cupo_ocupado: reservas.length,
+      reservas
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener las reservas" });
+  }
+});
+
+
 // Endpoint para obtener reservas de un local en una fecha específica
 router.get("/:local_id/:fecha", async (req, res) => {
-  const { local_id, fecha } = req.params; // Extraer los parámetros de la URL
-  const reservas = await Reserva.find({ local_id, fecha }); // Buscar reservas en la BD
-  const local = await Local.findById(local_id); // Obtener información del local
-  const cupos_disponibles = local.capacidad_maxima - reservas.length; // Calcular cupos disponibles
-  res.json({ cupos_disponibles, reservas }); // Responder con los datos
+  try {
+    const { local_id, fecha } = req.params;
+
+    // Verificar si el local existe
+    const local = await Local.findById(local_id);
+    if (!local) {
+      return res.status(404).json({ error: "Local no encontrado" });
+    }
+
+    // Buscar las reservas para esa fecha y local
+    const reservas = await Reserva.find({ local_id, fecha });
+
+    // Verificar si hay reservas
+    if (reservas.length === 0) {
+      return res.status(404).json({ message: "No hay reservas para esta fecha" });
+    }
+
+    res.json({
+      local: local.nombre,
+      fecha,
+      reservas
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener las reservas" });
+  }
 });
+
 
 // Endpoint para crear una reserva si hay cupos disponibles
 router.post("/", async (req, res) => {
-  const { local_id, fecha } = req.body; // Extraer datos del cuerpo de la petición
-  const reservas = await Reserva.find({ local_id, fecha }); // Consultar reservas existentes
-  const local = await Local.findById(local_id); // Obtener información del local
+  try {
+    const { local_id, fecha } = req.body;
 
-  if (reservas.length < local.capacidad_maxima) {
-    // Verificar si hay cupos disponibles
-    const nuevaReserva = new Reserva({ local_id, fecha }); // Crear nueva reserva
-    await nuevaReserva.save(); // Guardar en la BD
-    return res.status(201).json(nuevaReserva); // Responder con la reserva creada
-  } else {
-    return res.status(400).json({ error: "No hay cupos disponibles" }); // Responder con error si no hay cupos
+    // Verificar que el local exista
+    const local = await Local.findById(local_id);
+    if (!local) {
+      return res.status(404).json({ error: "Local no encontrado" });
+    }
+
+    // Verificar disponibilidad de cupos
+    const reservas = await Reserva.find({ local_id, fecha });
+    if (reservas.length >= local.cupo) {
+      return res.status(400).json({ error: "No hay cupos disponibles para esta fecha" });
+    }
+
+    // Crear la nueva reserva
+    const nuevaReserva = new Reserva({ local_id, fecha });
+    await nuevaReserva.save();
+
+    // Actualizar el cupo del local
+    local.cupo -= 1;
+    await local.save();
+
+    res.status(201).json(nuevaReserva); // Responder con la nueva reserva creada
+  } catch (error) {
+    res.status(500).json({ error: "Error al crear la reserva" });
   }
 });
+
+// Endpoint modificar una reserva
+router.put("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { local_id, fecha } = req.body;
+
+    // Verificar si la reserva existe
+    const reserva = await Reserva.findById(id);
+    if (!reserva) {
+      return res.status(404).json({ error: "Reserva no encontrada" });
+    }
+
+    // Verificar si el local existe
+    const local = await Local.findById(local_id);
+    if (!local) {
+      return res.status(404).json({ error: "Local no encontrado" });
+    }
+
+    // Si la fecha cambia, actualizamos el cupo
+    if (reserva.fecha !== fecha) {
+      // Devolver el cupo al local por la reserva anterior
+      local.cupo += 1;
+      await local.save();
+    }
+
+    // Actualizar la reserva con la nueva fecha
+    reserva.fecha = fecha;
+    await reserva.save();
+
+    // Restar un cupo al local por la nueva reserva
+    local.cupo -= 1;
+    await local.save();
+
+    res.json(reserva); // Responder con la reserva actualizada
+  } catch (error) {
+    res.status(500).json({ error: "Error al actualizar la reserva" });
+  }
+});
+
+
 
 // Exportar el enrutador
 module.exports = router;
