@@ -18,7 +18,6 @@ mongoose
   .connect(MONGO_URI)
   .then(async () => {
     console.log("MongoDB conectado");
-
   })
   .catch((err) => console.error(err));
 
