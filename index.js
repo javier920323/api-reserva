@@ -22,7 +22,7 @@ mongoose
   .catch((err) => console.error(err));
 
 app.get("/", (req, res) => {
-  res.send("API funcionando 🚀");
+  res.send("API funcionando 🚀 para que la  vea la titica");
 });
 
 // Importar rutas de locales y reservas
