@@ -28,10 +28,12 @@ app.get("/", (req, res) => {
 // Importar rutas de locales y reservas
 const localesRoutes = require("./routes/locales");
 const reservasRoutes = require("./routes/reservas");
+const auth = require("./routes/auth");
 
 // Definir las rutas para los diferentes recursos
 app.use("/api/locales", localesRoutes); // Rutas relacionadas con locales
 app.use("/api/reservas", reservasRoutes); // Rutas relacionadas con reservas
+app.use("/api/auth", auth);
 
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en http://localhost:${PORT}`);
