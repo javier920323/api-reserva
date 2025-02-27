@@ -2,6 +2,7 @@
 const express = require("express"); // Importar Express para manejar rutas
 const router = express.Router(); // Crear el enrutador de Express
 const Local = require("../models/Local"); // Importar el modelo Local
+const authMiddleware = require("../middlewares/authMiddleware");
 
 // Endpoint para obtener la lista de locales
 router.get("/", async (req, res) => {
@@ -10,15 +11,22 @@ router.get("/", async (req, res) => {
 });
 
 // Endpoint para crear un nuevo local
-router.post("/", async (req, res) => {
+router.post("/", authMiddleware, async (req, res) => {
+  if (req.usuario.rol !== "admin") {
+    return res.status(403).json({ error: "Acceso denegado. Se requiere rol de administrador." });
+  }
+
   const { nombre, cupo } = req.body; // Extraer datos del cuerpo de la petición
   const nuevoLocal = new Local({ nombre, cupo }); // Crear una nueva instancia de Local
   await nuevoLocal.save(); // Guardar en la base de datos
   res.status(201).json(nuevoLocal); // Responder con el local creado
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", authMiddleware, async (req, res) => {
   try {
+    if (req.usuario.rol !== "admin") {
+      return res.status(403).json({ error: "Acceso denegado. Se requiere rol de administrador." });
+    }
     const { id } = req.params;
     const { nombre, cupo } = req.body;
 
