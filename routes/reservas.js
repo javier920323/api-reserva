@@ -67,7 +67,7 @@ router.get("/:local_id/:fecha", authMiddleware, async (req, res) => {
 // Endpoint para crear una reserva si hay cupos disponibles
 router.post("/", async (req, res) => {
   try {
-    const { local_id, fecha } = req.body;
+    const { local_id, user_id, fecha } = req.body;
 
     // Verificar que el local exista
     const local = await Local.findById(local_id);
@@ -82,7 +82,7 @@ router.post("/", async (req, res) => {
     }
 
     // Crear la nueva reserva
-    const nuevaReserva = new Reserva({ local_id, fecha });
+    const nuevaReserva = new Reserva({ local_id, user_id, fecha });
     await nuevaReserva.save();
 
     // Actualizar el cupo del local
