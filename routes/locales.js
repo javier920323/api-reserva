@@ -22,13 +22,12 @@ router.post("/", authMiddleware, async (req, res) => {
   res.status(201).json(nuevoLocal); // Responder con el local creado
 });
 
-router.put("/:id", authMiddleware, async (req, res) => {
+router.put("/", authMiddleware, async (req, res) => {
   try {
     if (req.usuario.rol !== "admin") {
       return res.status(403).json({ error: "Acceso denegado. Se requiere rol de administrador." });
     }
-    const { id } = req.params;
-    const { nombre, cupo } = req.body;
+    const { id, nombre, cupo } = req.body;
 
     // Validar que los datos sean correctos
     if (!nombre || !cupo || typeof cupo !== "number" || cupo <= 0) {
