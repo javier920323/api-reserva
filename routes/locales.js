@@ -31,13 +31,13 @@ router.put("/", authMiddleware, async (req, res) => {
 
     // Validar que los datos sean correctos
     if (!nombre || !cupo || typeof cupo !== "number" || cupo <= 0) {
-      return res.status(400).json({ error: `Datos inválidos nombre: ${nombre} cupo: ${cupo} y id: ${id}` });
+      return res.status(400).json({ error: "Datos inválidos" });
     }
 
     // Verificar si el local existe
     const local = await Local.findById(id);
     if (!local) {
-      return res.status(404).json({ error: `${local}"  Local no encontrado ahora id:"${id}` });
+      return res.status(404).json({ error: "Local no encontrado" });
     }
 
     // Verificar si otro local ya tiene el mismo nombre
