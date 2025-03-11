@@ -8,6 +8,9 @@ const authMiddleware = require("../middlewares/authMiddleware");
 // Endpoint para obtener todas las reservas
 router.get("/", authMiddleware, async (req, res) => {
   try {
+    if (req.usuario.rol !== "admin") {
+      return res.status(403).json({ error: "Acceso denegado. Se requiere rol de administrador." });
+    }
     const reservas = await Reserva.find()
       .populate("user_id", "nombre")
       .populate("local_id", "nombre");
@@ -17,6 +20,16 @@ router.get("/", authMiddleware, async (req, res) => {
   }
 });
 
+// Obtener reservas de un usuario por su ID
+router.get('/:user_id', async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const reservas = await Reserva.find({ user_id });
+    res.json(reservas);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener las reservas' });
+  }
+});
 
 // Endpoint para obtener todas reservas de un local
 router.get("/:local_id", authMiddleware, async (req, res) => {
@@ -42,40 +55,6 @@ router.get("/:local_id", authMiddleware, async (req, res) => {
     res.status(500).json({ error: "Error al obtener las reservas" });
   }
 });
-
-
-// Endpoint para obtener reservas de un local en una fecha específica
-router.get("/:local_id/:fecha", authMiddleware, async (req, res) => {
-  try {
-    if (req.usuario.rol !== "admin") {
-      return res.status(403).json({ error: "Acceso denegado. Se requiere rol de administrador." });
-    }
-    const { local_id, fecha } = req.params;
-
-    // Verificar si el local existe
-    const local = await Local.findById(local_id);
-    if (!local) {
-      return res.status(404).json({ error: "Local no encontrado" });
-    }
-
-    // Buscar las reservas para esa fecha y local
-    const reservas = await Reserva.find({ local_id, fecha });
-
-    // Verificar si hay reservas
-    if (reservas.length === 0) {
-      return res.status(404).json({ message: "No hay reservas para esta fecha" });
-    }
-
-    res.json({
-      local: local.nombre,
-      fecha,
-      reservas
-    });
-  } catch (error) {
-    res.status(500).json({ error: "Error al obtener las reservas" });
-  }
-});
-
 
 // Endpoint para crear una reserva si hay cupos disponibles
 router.post("/", async (req, res) => {
@@ -146,7 +125,6 @@ router.put("/:id", async (req, res) => {
     res.status(500).json({ error: "Error al actualizar la reserva" });
   }
 });
-
 
 
 // Exportar el enrutador

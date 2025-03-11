@@ -15,12 +15,12 @@ router.post("/", authMiddleware, async (req, res) => {
   if (req.usuario.rol !== "admin") {
     return res.status(403).json({ error: "Acceso denegado. Se requiere rol de administrador." });
   }
-
   const { nombre, cupo } = req.body; // Extraer datos del cuerpo de la petición
   const nuevoLocal = new Local({ nombre, cupo }); // Crear una nueva instancia de Local
   await nuevoLocal.save(); // Guardar en la base de datos
   res.status(201).json(nuevoLocal); // Responder con el local creado
 });
+
 // Endpoint para actualizar un local
 router.put("/", authMiddleware, async (req, res) => {
   try {
