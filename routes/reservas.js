@@ -6,9 +6,11 @@ const Local = require("../models/Local"); // Importar el modelo Local
 const authMiddleware = require("../middlewares/authMiddleware");
 
 // Endpoint para obtener todas las reservas
-router.get("/", async (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   try {
-    const reservas = await Reserva.find();
+    const reservas = await Reserva.find()
+      .populate("user_id", "nombre")
+      .populate("local_id", "nombre");
     res.json(reservas);
   } catch (error) {
     res.status(500).json({ mensaje: "Error al obtener las reservas", error });
