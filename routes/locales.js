@@ -21,7 +21,7 @@ router.post("/", authMiddleware, async (req, res) => {
   await nuevoLocal.save(); // Guardar en la base de datos
   res.status(201).json(nuevoLocal); // Responder con el local creado
 });
-
+// Endpoint para actualizar un local
 router.put("/", authMiddleware, async (req, res) => {
   try {
     if (req.usuario.rol !== "admin") {

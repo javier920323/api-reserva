@@ -4,7 +4,7 @@ const mongoose = require("mongoose"); // Importar mongoose para definir el esque
 // Definir el esquema del modelo Reserva
 const reservaSchema = new mongoose.Schema({
   local_id: { type: mongoose.Schema.Types.ObjectId, ref: "Local" }, // Referencia al local
-  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "Local" },
+  user_id: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario" }, // Referencia al usuario
   fecha: String, // Fecha de la reserva
 });
 
