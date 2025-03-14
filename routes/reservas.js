@@ -21,7 +21,7 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 // Obtener reservas de un usuario por su ID
-router.get('/:user_id', async (req, res) => {
+router.get('/user/:user_id', async (req, res) => {
   try {
     const { user_id } = req.params;
     const reservas = await Reserva.find({ user_id });
