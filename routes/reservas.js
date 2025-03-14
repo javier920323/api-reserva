@@ -24,7 +24,8 @@ router.get("/", authMiddleware, async (req, res) => {
 router.get('/user/:user_id', async (req, res) => {
   try {
     const { user_id } = req.params;
-    const reservas = await Reserva.find({ user_id });
+    const reservas = await Reserva.find({ user_id })
+      .populate("local_id", "nombre");
     res.json(reservas);
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener las reservas' });
