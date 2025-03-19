@@ -6,7 +6,7 @@ const authMiddleware = require("../middlewares/authMiddleware");
 
 // Endpoint para obtener la lista de locales
 router.get("/", async (req, res) => {
-  const locales = await Local.find().select("_id nombre cupo "); // Obtener todos los locales de la BD
+  const locales = await Local.find().select("_id nombre cupo ").sort({ nombre: 1 }); // Obtener todos los locales de la BD
   res.json(locales); // Enviar la lista en formato JSON
 });
 
