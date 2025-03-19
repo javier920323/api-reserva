@@ -45,7 +45,7 @@ router.get("/:local_id", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Local no encontrado" });
     }
     // Obtener todas las reservas del local, ordenadas por fecha
-    const reservas = await Reserva.find({ local_id }).sort({ fecha: 1 });
+    const reservas = await Reserva.find({ local_id }).populate("user_id", "nombre").sort({ fecha: 1 });
     res.json({
       local: local.nombre,
       cupo_total: local.cupo,
