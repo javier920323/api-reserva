@@ -105,20 +105,9 @@ router.put("/:id", async (req, res) => {
       return res.status(404).json({ error: "Local no encontrado" });
     }
 
-    // Si la fecha cambia, actualizamos el cupo
-    if (reserva.fecha !== fecha) {
-      // Devolver el cupo al local por la reserva anterior
-      local.cupo += 1;
-      await local.save();
-    }
-
     // Actualizar la reserva con la nueva fecha
     reserva.fecha = fecha;
     await reserva.save();
-
-    // Restar un cupo al local por la nueva reserva
-    local.cupo -= 1;
-    await local.save();
 
     res.json(reserva); // Responder con la reserva actualizada
   } catch (error) {
