@@ -57,6 +57,23 @@ router.put("/", authMiddleware, async (req, res) => {
   }
 });
 
+// Endpoint para eliminar un local
+router.delete("/", authMiddleware, async (req, res) => {
+  if (req.usuario.rol !== "admin") {
+    return res.status(403).json({ error: "Acceso denegado. Se requiere rol de administrador." });
+  }
+  const { id } = req.body;
+
+  // Verificar si el local existe
+  const local = await Local.findById(id);
+  if (!local) {
+    return res.status(404).json({ error: "Local no encontrado" });
+  }
+  // Eliminar el local
+  await local.remove();
+
+  res.json({ message: "Local eliminado exitosamente" });
+});
 
 // Exportar el enrutador
 module.exports = router;

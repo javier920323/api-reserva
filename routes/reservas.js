@@ -21,14 +21,13 @@ router.get("/", authMiddleware, async (req, res) => {
 });
 
 // Obtener reservas de un usuario por su ID
-router.get('/user/:user_id', async (req, res) => {
+router.get("/user/:user_id", async (req, res) => {
   try {
     const { user_id } = req.params;
-    const reservas = await Reserva.find({ user_id })
-      .populate("local_id", "nombre");
+    const reservas = await Reserva.find({ user_id }).populate("local_id", "nombre");
     res.json(reservas);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener las reservas' });
+    res.status(500).json({ error: "Error al obtener las reservas" });
   }
 });
 
@@ -45,12 +44,14 @@ router.get("/:local_id", authMiddleware, async (req, res) => {
       return res.status(404).json({ error: "Local no encontrado" });
     }
     // Obtener todas las reservas del local, ordenadas por fecha
-    const reservas = await Reserva.find({ local_id }).populate("user_id", "nombre").sort({ fecha: 1 });
+    const reservas = await Reserva.find({ local_id })
+      .populate("user_id", "nombre")
+      .sort({ fecha: 1 });
     res.json({
       local: local.nombre,
       cupo_total: local.cupo,
       cupo_ocupado: reservas.length,
-      reservas
+      reservas,
     });
   } catch (error) {
     res.status(500).json({ error: "Error al obtener las reservas" });
@@ -115,6 +116,35 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// Endpoint eliminar una reserva
+router.delete("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Verificar si la reserva existe
+    const reserva = await Reserva.findById(id);
+    if (!reserva) {
+      return res.status(404).json({ error: "Reserva no encontrada" });
+    }
+
+    // Verificar si el local existe
+    const local = await Local.findById(reserva.local_id);
+    if (!local) {
+      return res.status(404).json({ error: "Local no encontrado" });
+    }
+
+    // Liberar un cupo del local al eliminar la reserva
+    local.cupo += 1; // Ejemplo: sumar 1 al cupo, asumiendo que al eliminar se libera un espacio
+    await local.save(); // Guardamos el local después de actualizar el cupo
+
+    // Eliminar la reserva
+    await reserva.remove();
+
+    res.json({ message: "Reserva eliminada exitosamente" }); // Responder con mensaje de éxito
+  } catch (error) {
+    res.status(500).json({ error: "Error al eliminar la reserva" });
+  }
+});
 
 // Exportar el enrutador
 module.exports = router;

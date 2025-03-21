@@ -67,4 +67,38 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// Endpoint para actualizar los datos de un usuario
+router.put("/actualizar", async (req, res) => {
+  try {
+    const { id, nombre, password } = req.body;
+
+    // Verificar si el usuario existe
+    const usuario = await Usuario.findById(id);
+    if (!usuario) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+
+    // Si se proporciona una nueva contraseña, encriptarla
+    if (password) {
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash(password, salt);
+      req.body.password = passwordHash; // Actualizar la contraseña con el valor encriptado
+    }
+
+    // Actualizar los campos del usuario
+    const datosActualizados = {
+      nombre: nombre || usuario.nombre,
+      password: req.body.password || usuario.password,
+    };
+
+    // Actualizar el usuario
+    const usuarioActualizado = await Usuario.findByIdAndUpdate(id, datosActualizados, { new: true });
+
+    res.json({ mensaje: "Usuario actualizado con éxito", usuario: usuarioActualizado });
+  } catch (error) {
+    res.status(500).json({ error: "Error al actualizar el usuario" });
+  }
+});
+
+
 module.exports = router;
