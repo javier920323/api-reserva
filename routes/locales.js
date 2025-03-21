@@ -62,17 +62,24 @@ router.delete("/", authMiddleware, async (req, res) => {
   if (req.usuario.rol !== "admin") {
     return res.status(403).json({ error: "Acceso denegado. Se requiere rol de administrador." });
   }
-  const { id } = req.body;
+  const { id } = req.body; // Obtener ID del body
 
-  // Verificar si el local existe
-  const local = await Local.findById(id);
-  if (!local) {
-    return res.status(404).json({ error: "Local no encontrado" });
+  if (!id) {
+    return res.status(400).json({ error: "Se requiere el ID del local" });
   }
-  // Eliminar el local
-  await local.remove();
 
-  res.json({ message: "Local eliminado exitosamente" });
+  try {
+    const local = await Local.findById(id);
+    if (!local) {
+      return res.status(404).json({ error: "Local no encontrado" });
+    }
+
+    await local.deleteOne(); // Eliminar el local
+
+    res.json({ message: "Local eliminado exitosamente" });
+  } catch (error) {
+    res.status(500).json({ error: "Error al eliminar el local" });
+  }
 });
 
 // Exportar el enrutador
