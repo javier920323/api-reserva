@@ -69,8 +69,7 @@ router.post("/", async (req, res) => {
     }
 
     // Verificar disponibilidad de cupos
-    const reservas = await Reserva.find({ local_id, fecha });
-    if (reservas.length >= local.cupo) {
+    if (local.cupo <= 0) {
       return res.status(400).json({ error: "No hay cupos disponibles para esta fecha" });
     }
 
