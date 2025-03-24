@@ -138,7 +138,7 @@ router.delete("/:id", async (req, res) => {
     await local.save(); // Guardamos el local después de actualizar el cupo
 
     // Eliminar la reserva
-    await reserva.remove();
+    await reserva.deleteOne();
 
     res.json({ message: "Reserva eliminada exitosamente" }); // Responder con mensaje de éxito
   } catch (error) {
